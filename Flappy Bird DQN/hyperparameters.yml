@@ -13,7 +13,7 @@ cartpole1:
   enable_double_dqn: True
 
 flappybird1:
-  env_id: FlappyBird-v0
+  env_id: FlappyBird-custom
   replay_memory_size: 100000
   mini_batch_size: 32
   epsilon_init: 1

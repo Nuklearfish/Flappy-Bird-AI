@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 import argparse
 import itertools
 
-import flappy_bird_gymnasium
+import custom_flappy_bird_gymnasium
 import os
 
 # For printing date and time
