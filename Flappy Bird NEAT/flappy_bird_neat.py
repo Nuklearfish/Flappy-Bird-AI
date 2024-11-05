@@ -13,6 +13,14 @@ import time
 import neat
 import visualize
 import pickle
+
+import sys
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+import Common.Analytics.FlappyBirdAnalytics as FBA
+Analytics = FBA.Analytics()
+
 pygame.font.init()  # init font
 
 WIN_WIDTH = 288
@@ -354,15 +362,24 @@ def eval_genomes(genomes, config):
     clock = pygame.time.Clock()
 
     run = True
+    quit = False
     while run and len(birds) > 0:
         clock.tick(30)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-                pygame.quit()
-                quit()
+                quit = True
                 break
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    run = False
+                    quit = True
+                    break
+                # kill generation
+                elif event.key == pygame.K_SPACE:
+                    run = False
+                    break
 
         pipe_ind = 0
         if len(birds) > 0:
@@ -431,6 +448,23 @@ def eval_genomes(genomes, config):
             pickle.dump(nets[0],open("best.pickle", "wb"))
             break'''
 
+    Analytics.saveRun(score)
+    Analytics.printLastRun()
+
+    if quit:
+        printEndResult()
+        pygame.quit()
+        quit()
+
+def printEndResult():
+    Analytics.setNewlinePrint(False)
+    Analytics.printRunCount()
+    Analytics.printWorstRun()
+    Analytics.printBestRun()
+    Analytics.printMeanValue()
+    print('-------- run list ----------')
+    Analytics.printAllRuns()
+    print('')
 
 def run(config_file):
     """

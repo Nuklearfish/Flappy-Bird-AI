@@ -57,6 +57,15 @@ from custom_flappy_bird_gymnasium.envs.constants import (
 )
 from custom_flappy_bird_gymnasium.envs.lidar import LIDAR
 
+import os
+import sys
+current = os.path.dirname(os.path.realpath(__file__))
+moduleRoot = os.path.dirname(os.path.dirname(current))
+parent = os.path.dirname(moduleRoot)
+sys.path.append(parent)
+import Common.Analytics.FlappyBirdAnalytics as FBA
+
+
 
 class Actions(IntEnum):
     """Possible actions for the player to take."""
@@ -167,6 +176,8 @@ class FlappyBirdEnv(gymnasium.Env):
             )
             if audio_on:
                 self._sounds = utils.load_sounds()
+
+        self.Analytics = FBA.Analytics()
 
     def step(
         self,
@@ -315,9 +326,30 @@ class FlappyBirdEnv(gymnasium.Env):
         if self._player_y < 0:
             reward = -0.5
 
+        #killswitches
+        kill = False
+        quit = False
+        if self.render_mode is not None:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        kill = True
+                        quit = True
+                        break
+                    # kill generation
+                    elif event.key == pygame.K_SPACE:
+                        kill = True
+                        break
+
+
         # check for crash
-        if self._check_crash():
+        if self._check_crash() | kill:
             self._sound_cache = "hit"
+            
+            if self.render_mode is not None:
+                self.Analytics.saveRun(self._score)
+                self.Analytics.printLastRun()
+
             reward = -1  # reward for dying
             terminal = True
             self._player_vel_y = 0
@@ -334,6 +366,11 @@ class FlappyBirdEnv(gymnasium.Env):
                     f"{self._statistics['pipe_mean_value']}],"
                     f"Ground: {self._statistics['ground_min_value']}"
                 )
+
+        if quit:
+            if self.render_mode is not None:
+                self.printEndResult()
+            self.close()
 
         info = {"score": self._score}
         self.reward += reward
@@ -415,6 +452,16 @@ class FlappyBirdEnv(gymnasium.Env):
             self._update_display()
             self._fps_clock.tick(self.metadata["render_fps"])
 
+    def printEndResult(self):
+        self.Analytics.setNewlinePrint(False)
+        self.Analytics.printRunCount()
+        self.Analytics.printWorstRun()
+        self.Analytics.printBestRun()
+        self.Analytics.printMeanValue()
+        print('-------- run list ----------')
+        self.Analytics.printAllRuns()
+        print('')
+    
     def close(self):
         """Closes the environment."""
         if self.render_mode is not None:
