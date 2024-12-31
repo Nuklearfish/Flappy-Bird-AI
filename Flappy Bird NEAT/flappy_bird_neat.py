@@ -45,7 +45,7 @@ class Bird:
     Bird class representing the flappy bird
     """
     MAX_ROTATION = 45
-    MIN_VEL_Y = -8 # final jump vel?
+    MIN_VEL_Y = -8 # final jump vel
     MAX_VEL_Y = 10 # terminal vel
     ACC_Y = 1 #downwards acc
     JUMP_ACC = -9 #burst jump acc
